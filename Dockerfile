@@ -45,13 +45,30 @@ class TrustProxies extends Middleware\n\
 }" > app/Http/Middleware/TrustProxies.php
 
 # Create entrypoint script
+# Create entrypoint script that completes installation
 RUN echo '#!/bin/bash\n\
+# Run migrations if needed\n\
 php artisan migrate --seed --force || true\n\
+\n\
+# Mark as installed\n\
+touch storage/installed\n\
+\n\
+# Create default admin if not exists\n\
+php artisan bagisto:install --skip-admin-creation --skip-env-check || true\n\
+\n\
+# Try to create admin user (will skip if exists)\n\
+php artisan db:seed --class=Webkul\\\\User\\\\Database\\\\Seeders\\\\AdminSeeder --force || true\n\
+\n\
+# Link storage\n\
 php artisan storage:link || true\n\
+\n\
+# Clear and cache config\n\
 php artisan config:clear\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
+\n\
+# Start server\n\
 php artisan serve --host=0.0.0.0 --port=${PORT:-8000}' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE ${PORT:-8000}
