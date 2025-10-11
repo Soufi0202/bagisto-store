@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    libicu-dev
+    libicu-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip calendar opcache
@@ -28,28 +29,17 @@ COPY . .
 RUN composer install --optimize-autoloader --no-dev
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 755 storage bootstrap/cache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Configure Apache DocumentRoot
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-
-# Create entrypoint script that configures port and runs migrations
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
-# Run migrations\n\
 php artisan migrate --seed --force || true\n\
 php artisan storage:link || true\n\
 php artisan config:cache\n\
-\n\
-# Configure Apache to listen on Railway PORT\n\
-sed -i "s/Listen 80/Listen ${PORT:-80}/" /etc/apache2/ports.conf\n\
-sed -i "s/:80/:${PORT:-80}/" /etc/apache2/sites-available/000-default.conf\n\
-\n\
-# Start Apache\n\
-apache2-foreground' > /entrypoint.sh && chmod +x /entrypoint.sh
+php artisan route:cache\n\
+php artisan view:cache\n\
+php artisan serve --host=0.0.0.0 --port=${PORT:-8000}' > /entrypoint.sh && chmod +x /entrypoint.sh
 
-EXPOSE ${PORT:-80}
+EXPOSE ${PORT:-8000}
 
 CMD ["/entrypoint.sh"]
