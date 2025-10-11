@@ -31,10 +31,24 @@ RUN composer install --optimize-autoloader --no-dev
 # Set permissions
 RUN chmod -R 755 storage bootstrap/cache
 
+# Configure trusted proxies - trust all proxies for Railway
+RUN echo "<?php\n\
+namespace App\Http\Middleware;\n\
+use Illuminate\Http\Middleware\TrustProxies as Middleware;\n\
+class TrustProxies extends Middleware\n\
+{\n\
+    protected \$proxies = '*';\n\
+    protected \$headers = \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |\n\
+                          \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |\n\
+                          \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |\n\
+                          \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO;\n\
+}" > app/Http/Middleware/TrustProxies.php
+
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\
 php artisan migrate --seed --force || true\n\
 php artisan storage:link || true\n\
+php artisan config:clear\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
