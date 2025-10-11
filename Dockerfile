@@ -40,7 +40,7 @@ RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available
 RUN echo '#!/bin/bash\n\
 php artisan migrate:fresh --seed --force\n\
 php artisan storage:link\n\
-php artisan bagisto:publish --force\n\
+php artisan vendor:publish --all --force\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
