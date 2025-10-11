@@ -36,7 +36,17 @@ RUN a2enmod rewrite
 # Configure Apache
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+php artisan migrate:fresh --seed --force\n\
+php artisan storage:link\n\
+php artisan bagisto:publish --force\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+apache2-foreground' > /entrypoint.sh && chmod +x /entrypoint.sh
+
 # Expose port
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["/entrypoint.sh"]
