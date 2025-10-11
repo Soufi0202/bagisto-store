@@ -33,20 +33,23 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Configure Apache
+# Configure Apache DocumentRoot
 RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Create entrypoint script
+# Create entrypoint script that configures port and runs migrations
 RUN echo '#!/bin/bash\n\
-php artisan migrate:fresh --seed --force\n\
-php artisan storage:link\n\
-php artisan vendor:publish --all --force\n\
+# Run migrations\n\
+php artisan migrate --seed --force || true\n\
+php artisan storage:link || true\n\
 php artisan config:cache\n\
-php artisan route:cache\n\
-php artisan view:cache\n\
+\n\
+# Configure Apache to listen on Railway PORT\n\
+sed -i "s/Listen 80/Listen ${PORT:-80}/" /etc/apache2/ports.conf\n\
+sed -i "s/:80/:${PORT:-80}/" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Start Apache\n\
 apache2-foreground' > /entrypoint.sh && chmod +x /entrypoint.sh
 
-# Expose port
-EXPOSE 80
+EXPOSE ${PORT:-80}
 
 CMD ["/entrypoint.sh"]
