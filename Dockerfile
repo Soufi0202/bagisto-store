@@ -62,16 +62,10 @@ RUN mkdir -p storage/app/public \
 
 # Configure trusted proxies - trust all proxies for Railway
 # Create entrypoint script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
-# Run migrations if needed\n\
-php artisan migrate --seed --force || true\n\
-\n\
-# Mark as installed\n\
-touch storage/installed\n\
-\n\
-# Complete installation\n\
-php artisan bagisto:install --skip-admin-creation --skip-env-check || true\n\
-php artisan db:seed --class=Webkul\\\\User\\\\Database\\\\Seeders\\\\AdminSeeder --force || true\n\
+# Run migrations WITHOUT seeding (only adds new tables/columns)\n\
+php artisan migrate --force\n\
 \n\
 # Force create storage link\n\
 rm -rf public/storage\n\
