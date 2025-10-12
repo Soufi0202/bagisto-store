@@ -199,3 +199,83 @@ Route::get('/test-image-generation/{path}', function($path) {
         ], 500);
     }
 })->where('path', '.*');
+
+
+Route::get('/find-all-images', function() {
+    $results = [];
+    
+    // Search for all image files in storage
+    $storagePath = storage_path('app/public');
+    
+    // Find all directories
+    $directories = [
+        'storage/app/public root' => glob($storagePath . '/*'),
+        'product' => glob($storagePath . '/product/*'),
+        'category' => glob($storagePath . '/category/*'),
+        'theme' => glob($storagePath . '/theme/*'),
+        'theme/1' => glob($storagePath . '/theme/1/*'),
+        'theme/default' => glob($storagePath . '/theme/default/*'),
+    ];
+    
+    foreach ($directories as $key => $files) {
+        if (!empty($files)) {
+            $results[$key] = [
+                'count' => count($files),
+                'samples' => array_slice(array_map('basename', $files), 0, 5)
+            ];
+        }
+    }
+    
+    // Also check public directory
+    $publicChecks = [
+        'public/storage exists' => is_link(public_path('storage')),
+        'public/cache exists' => is_dir(public_path('cache')),
+        'public/themes' => glob(public_path('themes/*')),
+        'public/vendor' => glob(public_path('vendor/webkul/*')),
+    ];
+    
+    foreach ($publicChecks as $key => $value) {
+        if (is_bool($value)) {
+            $results[$key] = $value;
+        } elseif (!empty($value)) {
+            $results[$key] = array_map('basename', $value);
+        }
+    }
+    
+    // Find .webp files specifically (the ones failing)
+    $webpFiles = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($storagePath, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    
+    foreach ($iterator as $file) {
+        if ($file->isFile() && $file->getExtension() === 'webp') {
+            $relativePath = str_replace($storagePath . '/', '', $file->getPathname());
+            $webpFiles[] = $relativePath;
+            if (count($webpFiles) >= 10) break; // Limit to first 10
+        }
+    }
+    
+    $results['WebP files found'] = $webpFiles;
+    
+    // Check database for image paths
+    try {
+        $productImages = \DB::table('product_images')
+            ->select('path', 'type')
+            ->limit(5)
+            ->get();
+        $results['Database product_images'] = $productImages;
+        
+        $categoryImages = \DB::table('categories')
+            ->whereNotNull('image_url')
+            ->select('image_url')
+            ->limit(5)
+            ->get();
+        $results['Database category images'] = $categoryImages;
+    } catch (\Exception $e) {
+        $results['Database check'] = 'Error: ' . $e->getMessage();
+    }
+    
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+});
