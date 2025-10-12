@@ -34,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->remove(ConvertEmptyStringsToNull::class);
 
         $middleware->append(SecureHeaders::class);
-        $middleware->append(CanInstall::class);
+        //$middleware->append(CanInstall::class);
 
         /**
          * Add the overridden middleware at the end of the list.
