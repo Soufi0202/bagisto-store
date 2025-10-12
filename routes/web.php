@@ -279,3 +279,138 @@ Route::get('/find-all-images', function() {
     
     return response()->json($results, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
+
+Route::get('/fix-banner-images', function() {
+    $results = [];
+    
+    try {
+        // These are the exact images your homepage is trying to load
+        $bannerImages = [
+            'BdLuxahbnROBwiYu7aThBQeiErp371QTUPqbsWpu.webp',
+            'M8IrLJi2CmtGQtX3FFn2zqqSNPMUiVIkGYQsOeaE.webp',
+            'DumdAM9sTnjSxbD8MrvVLDSAeslGIOAJdmBSKmLX.webp',
+            'CLqWVWAeyCkxALTGO3GBlbWui95L78emDrm9CtID.webp'
+        ];
+        
+        // Create theme/1 directory in storage
+        $themePath = storage_path('app/public/theme/1');
+        if (!is_dir($themePath)) {
+            mkdir($themePath, 0777, true);
+            $results['theme_directory'] = 'Created: ' . $themePath;
+        }
+        
+        // Create each banner image
+        foreach ($bannerImages as $index => $filename) {
+            $fullPath = $themePath . '/' . $filename;
+            
+            // Create a professional-looking banner image
+            $width = 1920;
+            $height = 450;
+            $image = imagecreatetruecolor($width, $height);
+            
+            // Different color schemes for each banner
+            $colorSchemes = [
+                ['bg' => [41, 128, 185], 'accent' => [52, 152, 219]], // Blue
+                ['bg' => [39, 174, 96], 'accent' => [46, 204, 113]], // Green  
+                ['bg' => [192, 57, 43], 'accent' => [231, 76, 60]], // Red
+                ['bg' => [142, 68, 173], 'accent' => [155, 89, 182]], // Purple
+            ];
+            
+            $scheme = $colorSchemes[$index % count($colorSchemes)];
+            
+            // Create gradient background
+            for ($y = 0; $y < $height; $y++) {
+                $ratio = $y / $height;
+                $r = $scheme['bg'][0] + ($scheme['accent'][0] - $scheme['bg'][0]) * $ratio;
+                $g = $scheme['bg'][1] + ($scheme['accent'][1] - $scheme['bg'][1]) * $ratio;
+                $b = $scheme['bg'][2] + ($scheme['accent'][2] - $scheme['bg'][2]) * $ratio;
+                $color = imagecolorallocate($image, $r, $g, $b);
+                imagefilledrectangle($image, 0, $y, $width, $y + 1, $color);
+            }
+            
+            // Add some overlay shapes for visual interest
+            $overlayColor = imagecolorallocatealpha($image, 255, 255, 255, 110);
+            imagefilledellipse($image, -100, $height/2, 600, 600, $overlayColor);
+            imagefilledellipse($image, $width + 100, $height/2, 600, 600, $overlayColor);
+            
+            // Add text
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $texts = [
+                "Welcome to Our B2B Store",
+                "Quality Products for Your Business",
+                "Trusted by Industry Leaders",
+                "Exclusive B2B Pricing"
+            ];
+            
+            $text = $texts[$index % count($texts)];
+            $fontSize = 5; // Built-in font size
+            $textWidth = imagefontwidth($fontSize) * strlen($text);
+            $x = ($width - $textWidth) / 2;
+            $y = ($height / 2) - 10;
+            
+            // Add shadow for text
+            $shadow = imagecolorallocate($image, 0, 0, 0);
+            imagestring($image, $fontSize, $x + 2, $y + 2, $text, $shadow);
+            imagestring($image, $fontSize, $x, $y, $text, $white);
+            
+            // Add subtitle
+            $subtitle = "Get Started Today";
+            $subtitleWidth = imagefontwidth(3) * strlen($subtitle);
+            $subX = ($width - $subtitleWidth) / 2;
+            imagestring($image, 3, $subX, $y + 30, $subtitle, $white);
+            
+            // Save as WebP
+            if (imagewebp($image, $fullPath, 85)) {
+                $results['created_' . $index] = $filename;
+            } else {
+                $results['error_' . $index] = 'Failed to create ' . $filename;
+            }
+            
+            imagedestroy($image);
+        }
+        
+        // Also create the cache directories
+        $cacheTypes = ['small', 'medium', 'large', 'original'];
+        foreach ($cacheTypes as $type) {
+            $cacheDir = public_path("cache/{$type}/theme/1");
+            if (!is_dir($cacheDir)) {
+                mkdir($cacheDir, 0777, true);
+                $results["cache_{$type}_dir"] = 'Created';
+            }
+        }
+        
+        // Clear any cached views
+        \Artisan::call('view:clear');
+        \Artisan::call('cache:clear');
+        
+        $results['success'] = true;
+        $results['message'] = 'Banner images created successfully! Refresh your homepage.';
+        
+    } catch (\Exception $e) {
+        $results['error'] = $e->getMessage();
+        $results['trace'] = $e->getTraceAsString();
+    }
+    
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+});
+
+// Optional: Route to check if images were created successfully
+Route::get('/check-banner-images', function() {
+    $themePath = storage_path('app/public/theme/1');
+    $images = glob($themePath . '/*.webp');
+    
+    $result = [
+        'theme_path' => $themePath,
+        'theme_exists' => is_dir($themePath),
+        'images_count' => count($images),
+        'images' => array_map('basename', $images),
+        'storage_link' => is_link(public_path('storage')),
+        'cache_dirs' => [
+            'large' => is_dir(public_path('cache/large/theme/1')),
+            'medium' => is_dir(public_path('cache/medium/theme/1')),
+            'small' => is_dir(public_path('cache/small/theme/1')),
+        ]
+    ];
+    
+    return response()->json($result, 200, [], JSON_PRETTY_PRINT);
+});
