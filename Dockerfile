@@ -11,10 +11,19 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libicu-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
+    libxpm-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip calendar opcache
+# Configure and install PHP extensions with proper image support
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp \
+    --with-xpm \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip calendar opcache
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -28,8 +37,21 @@ COPY . .
 # Install dependencies
 RUN composer install --optimize-autoloader --no-dev
 
-# Set permissions
-RUN chmod -R 755 storage bootstrap/cache
+# Create necessary directories and set proper permissions
+RUN mkdir -p storage/app/public \
+    && mkdir -p storage/framework/cache/data \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && mkdir -p public/storage \
+    && mkdir -p public/cache/small \
+    && mkdir -p public/cache/medium \
+    && mkdir -p public/cache/large \
+    && mkdir -p public/cache/original \
+    && chmod -R 775 storage bootstrap/cache \
+    && chmod -R 777 public/cache \
+    && chown -R www-data:www-data storage bootstrap/cache public/cache
 
 # Configure trusted proxies - trust all proxies for Railway
 # Create entrypoint script
@@ -43,7 +65,15 @@ touch storage/installed\n\
 # Complete installation\n\
 php artisan bagisto:install --skip-admin-creation --skip-env-check || true\n\
 php artisan db:seed --class=Webkul\\\\User\\\\Database\\\\Seeders\\\\AdminSeeder --force || true\n\
-php artisan storage:link || true\n\
+\n\
+# Force create storage link\n\
+rm -rf public/storage\n\
+php artisan storage:link --force\n\
+\n\
+# Ensure cache directories exist with proper permissions\n\
+mkdir -p public/cache/{small,medium,large,original}\n\
+chmod -R 777 public/cache\n\
+chown -R www-data:www-data public/cache\n\
 \n\
 # Fix HTTPS URLs in database\n\
 php fix-https.php\n\
