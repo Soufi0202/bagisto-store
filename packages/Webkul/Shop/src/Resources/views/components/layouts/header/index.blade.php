@@ -15,7 +15,7 @@
                 <div class="flex items-center gap-x-10 max-[1180px]:gap-x-5">
                     <!-- Logo Shimmer -->
                     <span
-                        class="shimmer block h-[29px] w-[131px] rounded"
+                        class="shimmer block h-[29px] w-[140px] rounded"
                         role="presentation"
                     >
                     </span>
