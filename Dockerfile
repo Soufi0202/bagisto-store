@@ -25,6 +25,13 @@ RUN docker-php-ext-configure gd \
     --with-xpm \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip calendar opcache
 
+RUN echo "memory_limit = 256M" > /usr/local/etc/php/conf.d/custom.ini \
+    && echo "max_execution_time = 120" >> /usr/local/etc/php/conf.d/custom.ini \
+    && echo "max_input_time = 120" >> /usr/local/etc/php/conf.d/custom.ini \
+    && echo "post_max_size = 50M" >> /usr/local/etc/php/conf.d/custom.ini \
+    && echo "upload_max_filesize = 50M" >> /usr/local/etc/php/conf.d/custom.ini \
+    && echo "max_file_uploads = 20" >> /usr/local/etc/php/conf.d/custom.ini
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
