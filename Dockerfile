@@ -64,7 +64,17 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 # Create entrypoint script
 # Create entrypoint script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
+\n\
+# Recreate storage structure (needed because volume mounts over it)\n\
+mkdir -p storage/app/public\n\
+mkdir -p storage/framework/cache/data\n\
+mkdir -p storage/framework/sessions\n\
+mkdir -p storage/framework/views\n\
+mkdir -p storage/logs\n\
+mkdir -p bootstrap/cache\n\
+chmod -R 775 storage bootstrap/cache\n\
 \n\
 # Only run migrations (adds new tables/columns if Bagisto is updated)\n\
 php artisan migrate --force\n\
