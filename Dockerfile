@@ -72,11 +72,10 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\
 \n\
-# Sync only theme files (banners) from backup, leave other files untouched\n\
+# Sync only theme files (banners) from backup\n\
 echo "Syncing theme files from backup..."\n\
 mkdir -p storage/app/public/theme\n\
 cp -rf /storage-backup/app/public/theme/* storage/app/public/theme/ 2>/dev/null || true\n\
-echo "Theme files synced."\n\
 \n\
 # Recreate/ensure storage structure exists\n\
 mkdir -p storage/app/public\n\
@@ -86,12 +85,11 @@ mkdir -p storage/framework/views\n\
 mkdir -p storage/logs\n\
 mkdir -p bootstrap/cache\n\
 \n\
-# Fix ownership and permissions for storage\n\
+# Fix ownership and permissions\n\
 chown -R www-data:www-data storage\n\
-chmod -R 775 storage\n\
-chmod -R 775 bootstrap/cache\n\
+chmod -R 775 storage bootstrap/cache\n\
 \n\
-# Only run migrations\n\
+# Run migrations\n\
 php artisan migrate --force\n\
 \n\
 # Force create storage link\n\
@@ -102,6 +100,9 @@ php artisan storage:link --force\n\
 mkdir -p public/cache/{small,medium,large,original}\n\
 chmod -R 777 public/cache\n\
 chown -R www-data:www-data public/cache\n\
+\n\
+# Delete ALL cached images to force regeneration\n\
+rm -rf public/cache/small/* public/cache/medium/* public/cache/large/* public/cache/original/*\n\
 \n\
 # Fix HTTPS URLs\n\
 php fix-https.php || true\n\
