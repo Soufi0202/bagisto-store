@@ -442,12 +442,25 @@ Route::get('/check-persistence', function() {
     $publicCache = public_path('cache');
     $storageCache = storage_path('app/cache');
     
+    // Get ALL files in storage/app/cache recursively
+    $allCacheFiles = [];
+    if (is_dir($storageCache)) {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($storageCache, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $file) {
+            $allCacheFiles[] = str_replace($storageCache . '/', '', $file->getPathname());
+        }
+    }
+    
     return [
         'public_cache_is_symlink' => is_link($publicCache),
         'public_cache_target' => is_link($publicCache) ? readlink($publicCache) : 'not a symlink',
         'storage_cache_exists' => is_dir($storageCache),
         'storage_cache_writable' => is_writable($storageCache),
-        'sample_cached_images' => is_dir($storageCache . '/large') ? array_slice(scandir($storageCache . '/large'), 2, 5) : [],
-        'volume_mount_point' => '/var/www/html/storage',
+        'storage_cache_contents' => is_dir($storageCache) ? scandir($storageCache) : [],
+        'total_cached_files' => count($allCacheFiles),
+        'all_cache_files' => array_slice($allCacheFiles, 0, 20), // First 20 files
     ];
 });
