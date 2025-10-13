@@ -496,3 +496,26 @@ Route::get('/check-both-locations', function() {
         'files_in_storage_cache' => $storageCacheFiles,
     ];
 });
+Route::get('/check-cache-structure', function() {
+    $storageCachePath = storage_path('app/cache');
+    
+    $structure = [];
+    
+    // Check each size folder
+    foreach(['small', 'medium', 'large', 'original'] as $size) {
+        $path = $storageCachePath . '/' . $size;
+        $structure[$size] = [
+            'exists' => is_dir($path),
+            'writable' => is_writable($path),
+            'contents' => is_dir($path) ? scandir($path) : [],
+            'has_product_folder' => is_dir($path . '/product'),
+        ];
+        
+        // If product folder exists, check inside
+        if (is_dir($path . '/product')) {
+            $structure[$size]['product_contents'] = scandir($path . '/product');
+        }
+    }
+    
+    return $structure;
+});
