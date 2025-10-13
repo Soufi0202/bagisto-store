@@ -470,3 +470,29 @@ Route::get('/check-persistence', function() {
         'cache_by_size' => $cacheStats,
     ];
 });
+
+Route::get('/check-both-locations', function() {
+    $publicCachePath = public_path('cache');
+    $storageCachePath = storage_path('app/cache');
+    
+    // Check public/cache
+    $publicCacheFiles = [];
+    if (is_dir($publicCachePath . '/original/product')) {
+        $publicCacheFiles = scandir($publicCachePath . '/original/product');
+    }
+    
+    // Check storage/app/cache  
+    $storageCacheFiles = [];
+    if (is_dir($storageCachePath . '/original/product')) {
+        $storageCacheFiles = scandir($storageCachePath . '/original/product');
+    }
+    
+    return [
+        'public_cache_is_link' => is_link($publicCachePath),
+        'public_cache_path' => $publicCachePath,
+        'public_cache_real_path' => realpath($publicCachePath),
+        'storage_cache_path' => $storageCachePath,
+        'files_in_public_cache' => $publicCacheFiles,
+        'files_in_storage_cache' => $storageCacheFiles,
+    ];
+});
