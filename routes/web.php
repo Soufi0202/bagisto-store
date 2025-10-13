@@ -427,3 +427,14 @@ Route::get('/debug-storage', function() {
         'public_storage_target' => is_link($publicStorage) ? readlink($publicStorage) : 'not a link',
     ];
 });
+Route::get('/test-email', function() {
+    try {
+        Mail::raw('Test email from Bagisto', function($message) {
+            $message->to('soufianeelamrani2002@gmail.com')
+                    ->subject('Test Email');
+        });
+        return 'Email sent! Check your inbox.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
