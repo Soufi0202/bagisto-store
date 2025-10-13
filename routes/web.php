@@ -442,25 +442,31 @@ Route::get('/check-persistence', function() {
     $publicCache = public_path('cache');
     $storageCache = storage_path('app/cache');
     
-    // Get ALL files in storage/app/cache recursively
-    $allCacheFiles = [];
-    if (is_dir($storageCache)) {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($storageCache, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-        foreach ($iterator as $file) {
-            $allCacheFiles[] = str_replace($storageCache . '/', '', $file->getPathname());
+    // Check each cache size folder
+    $cacheStats = [];
+    foreach(['small', 'medium', 'large', 'original'] as $size) {
+        $path = $storageCache . '/' . $size;
+        $files = [];
+        
+        if (is_dir($path)) {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $files[] = str_replace($path . '/', '', $file->getPathname());
+                }
+            }
         }
+        
+        $cacheStats[$size] = [
+            'total_files' => count($files),
+            'sample_files' => array_slice($files, 0, 3)
+        ];
     }
     
     return [
-        'public_cache_is_symlink' => is_link($publicCache),
-        'public_cache_target' => is_link($publicCache) ? readlink($publicCache) : 'not a symlink',
-        'storage_cache_exists' => is_dir($storageCache),
-        'storage_cache_writable' => is_writable($storageCache),
-        'storage_cache_contents' => is_dir($storageCache) ? scandir($storageCache) : [],
-        'total_cached_files' => count($allCacheFiles),
-        'all_cache_files' => array_slice($allCacheFiles, 0, 20), // First 20 files
+        'symlink_working' => is_link($publicCache) && readlink($publicCache) === '/var/www/html/storage/app/cache',
+        'cache_by_size' => $cacheStats,
     ];
 });
