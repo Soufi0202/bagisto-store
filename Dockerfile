@@ -69,15 +69,14 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 # Create entrypoint script
 # Create entrypoint script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
 \n\
-# Check if storage/app/public is empty (first run or empty volume)\n\
-if [ -z "$(ls -A storage/app/public 2>/dev/null)" ]; then\n\
-    echo "Storage is empty, copying default files from backup..."\n\
-    cp -r /storage-backup/* storage/ 2>/dev/null || true\n\
-    echo "Files copied. Checking what we have:"\n\
-    ls -la storage/app/public/ || true\n\
-fi\n\
+# Sync only theme files (banners) from backup, leave other files untouched\n\
+echo "Syncing theme files from backup..."\n\
+mkdir -p storage/app/public/theme\n\
+cp -rf /storage-backup/app/public/theme/* storage/app/public/theme/ 2>/dev/null || true\n\
+echo "Theme files synced."\n\
 \n\
 # Recreate/ensure storage structure exists\n\
 mkdir -p storage/app/public\n\
