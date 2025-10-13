@@ -44,6 +44,8 @@ COPY . .
 # Install dependencies
 RUN composer install --optimize-autoloader --no-dev
 
+RUN cp -r storage /storage-backup
+
 # Create necessary directories and set proper permissions
 RUN mkdir -p storage/app/public \
     && mkdir -p storage/framework/cache/data \
@@ -65,9 +67,16 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 # Create entrypoint script
 # Create entrypoint script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
 \n\
-# Recreate storage structure (needed because volume mounts over it)\n\
+# Check if storage is empty (first run with volume)\n\
+if [ ! -d "storage/framework" ]; then\n\
+    echo "First run detected, copying default storage files..."\n\
+    cp -r /storage-backup/* storage/\n\
+fi\n\
+\n\
+# Recreate/ensure storage structure exists\n\
 mkdir -p storage/app/public\n\
 mkdir -p storage/framework/cache/data\n\
 mkdir -p storage/framework/sessions\n\
