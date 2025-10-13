@@ -438,3 +438,16 @@ Route::get('/test-email', function() {
         return 'Error: ' . $e->getMessage();
     }
 });
+Route::get('/check-persistence', function() {
+    $publicCache = public_path('cache');
+    $storageCache = storage_path('app/cache');
+    
+    return [
+        'public_cache_is_symlink' => is_link($publicCache),
+        'public_cache_target' => is_link($publicCache) ? readlink($publicCache) : 'not a symlink',
+        'storage_cache_exists' => is_dir($storageCache),
+        'storage_cache_writable' => is_writable($storageCache),
+        'sample_cached_images' => is_dir($storageCache . '/large') ? array_slice(scandir($storageCache . '/large'), 2, 5) : [],
+        'volume_mount_point' => '/var/www/html/storage',
+    ];
+});
