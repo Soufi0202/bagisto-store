@@ -85,9 +85,17 @@ mkdir -p storage/framework/views\n\
 mkdir -p storage/logs\n\
 mkdir -p bootstrap/cache\n\
 \n\
+# Move public/cache into storage volume (persistent)\n\
+mkdir -p storage/app/cache\n\
+mkdir -p storage/app/cache/{small,medium,large,original}\n\
+rm -rf public/cache\n\
+ln -sf /var/www/html/storage/app/cache public/cache\n\
+echo "Cache directory linked to storage volume"\n\
+\n\
 # Fix ownership and permissions\n\
 chown -R www-data:www-data storage\n\
 chmod -R 775 storage bootstrap/cache\n\
+chmod -R 777 storage/app/cache\n\
 \n\
 # Run migrations\n\
 php artisan migrate --force\n\
@@ -95,14 +103,6 @@ php artisan migrate --force\n\
 # Force create storage link\n\
 rm -rf public/storage\n\
 php artisan storage:link --force\n\
-\n\
-# Ensure cache directories exist\n\
-mkdir -p public/cache/{small,medium,large,original}\n\
-chmod -R 777 public/cache\n\
-chown -R www-data:www-data public/cache\n\
-\n\
-# Delete ALL cached images to force regeneration\n\
-rm -rf public/cache/small/* public/cache/medium/* public/cache/large/* public/cache/original/*\n\
 \n\
 # Fix HTTPS URLs\n\
 php fix-https.php || true\n\
