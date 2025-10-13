@@ -519,3 +519,27 @@ Route::get('/check-cache-structure', function() {
     
     return $structure;
 });
+Route::get('/find-images', function() {
+    $publicPath = public_path();
+    
+    // Search for .webp files in public directory
+    $webpFiles = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($publicPath, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+    
+    foreach ($iterator as $file) {
+        if ($file->isFile() && $file->getExtension() === 'webp') {
+            $webpFiles[] = str_replace($publicPath . '/', '', $file->getPathname());
+        }
+        
+        // Limit to 50 files
+        if (count($webpFiles) >= 50) break;
+    }
+    
+    return [
+        'total_webp_files' => count($webpFiles),
+        'webp_locations' => $webpFiles,
+        'public_path' => $publicPath,
+    ];
+});
