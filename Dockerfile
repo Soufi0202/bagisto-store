@@ -68,12 +68,15 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 # Create entrypoint script
 # Create entrypoint script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
 \n\
-# Check if storage is empty (first run with volume)\n\
-if [ ! -d "storage/framework" ]; then\n\
-    echo "First run detected, copying default storage files..."\n\
-    cp -r /storage-backup/* storage/\n\
+# Check if storage/app/public is empty (first run or empty volume)\n\
+if [ -z "$(ls -A storage/app/public 2>/dev/null)" ]; then\n\
+    echo "Storage is empty, copying default files from backup..."\n\
+    cp -r /storage-backup/* storage/ 2>/dev/null || true\n\
+    echo "Files copied. Checking what we have:"\n\
+    ls -la storage/app/public/ || true\n\
 fi\n\
 \n\
 # Recreate/ensure storage structure exists\n\
@@ -83,21 +86,25 @@ mkdir -p storage/framework/sessions\n\
 mkdir -p storage/framework/views\n\
 mkdir -p storage/logs\n\
 mkdir -p bootstrap/cache\n\
-chmod -R 775 storage bootstrap/cache\n\
 \n\
-# Only run migrations (adds new tables/columns if Bagisto is updated)\n\
+# Fix ownership and permissions for storage\n\
+chown -R www-data:www-data storage\n\
+chmod -R 775 storage\n\
+chmod -R 775 bootstrap/cache\n\
+\n\
+# Only run migrations\n\
 php artisan migrate --force\n\
 \n\
 # Force create storage link\n\
 rm -rf public/storage\n\
 php artisan storage:link --force\n\
 \n\
-# Ensure cache directories exist with proper permissions\n\
+# Ensure cache directories exist\n\
 mkdir -p public/cache/{small,medium,large,original}\n\
 chmod -R 777 public/cache\n\
 chown -R www-data:www-data public/cache\n\
 \n\
-# Fix HTTPS URLs in database (if you still need this)\n\
+# Fix HTTPS URLs\n\
 php fix-https.php || true\n\
 \n\
 # Clear and rebuild caches\n\
