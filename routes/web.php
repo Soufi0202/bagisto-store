@@ -414,3 +414,16 @@ Route::get('/check-banner-images', function() {
     
     return response()->json($result, 200, [], JSON_PRETTY_PRINT);
 });
+
+Route::get('/debug-storage', function() {
+    $storagePath = storage_path('app/public');
+    $publicStorage = public_path('storage');
+    
+    return [
+        'storage_exists' => is_dir($storagePath),
+        'storage_readable' => is_readable($storagePath),
+        'storage_files' => is_dir($storagePath) ? scandir($storagePath) : [],
+        'public_storage_link_exists' => is_link($publicStorage),
+        'public_storage_target' => is_link($publicStorage) ? readlink($publicStorage) : 'not a link',
+    ];
+});
