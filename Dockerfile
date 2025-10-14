@@ -72,11 +72,12 @@ RUN mkdir -p storage/app/public \
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\
 \n\
-# Sync only theme files (banners) from backup\n\
-echo "Syncing theme files from backup..."\n\
-mkdir -p storage/app/public/theme\n\
-cp -rf /storage-backup/app/public/theme/* storage/app/public/theme/ 2>/dev/null || true\n\
-\n\
+# Sync ALL public files from backup, including product images\n\
+echo "Syncing all public files from backup..."\n\
+mkdir -p storage/app/public\n\
+cp -rf /storage-backup/app/public/* storage/app/public/ 2>/dev/null || true\n\
+# Ensure product directory exists\n\
+mkdir -p storage/app/public/product\n\
 # Recreate/ensure storage structure exists\n\
 mkdir -p storage/app/public\n\
 mkdir -p storage/framework/cache/data\n\
