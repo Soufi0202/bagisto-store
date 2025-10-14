@@ -235,49 +235,8 @@
 
     <body dir="{{ core()->getCurrentLocale()->direction }}">
 <div class="logo-container {{ core()->getCurrentLocale()->direction }}">
-    @php
-        $logoPath = core()->getConfigData('sales.invoice_settings.pdf_print_outs.logo');
-        $logoContent = '';
-        $mimeType = 'image/png';
-        
-        if ($logoPath) {
-            try {
-                // Get the file extension to determine MIME type
-                $extension = pathinfo($logoPath, PATHINFO_EXTENSION);
-                switch (strtolower($extension)) {
-                    case 'jpg':
-                    case 'jpeg':
-                        $mimeType = 'image/jpeg';
-                        break;
-                    case 'png':
-                        $mimeType = 'image/png';
-                        break;
-                    case 'gif':
-                        $mimeType = 'image/gif';
-                        break;
-                    case 'svg':
-                        $mimeType = 'image/svg+xml';
-                        break;
-                }
-                
-                // Get file directly from storage disk instead of URL
-                $cleanPath = str_replace('public/', '', $logoPath);
-                if (Storage::disk('public')->exists($cleanPath)) {
-                    $logoContent = base64_encode(Storage::disk('public')->get($cleanPath));
-                }
-            } catch (\Exception $e) {
-                // Silently handle errors so PDF generation doesn't fail
-            }
-        }
-    @endphp
-
-    @if ($logoContent)
-        <!-- Set max height and width constraints -->
-        <img src="data:{{ $mimeType }};base64,{{ $logoContent }}" style="max-height: 30px; max-width: 131px;"/>
-    @else
         <!-- Default logo with proper formatting -->
             <img src=""/>
-    @endif
 </div>
 
         <div class="page">
