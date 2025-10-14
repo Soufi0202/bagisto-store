@@ -128,15 +128,23 @@
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.after') !!}
 
-                <!-- Pricing -->
-                {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
-
-                <div
-                    class="flex items-center gap-2.5 text-lg font-semibold max-sm:text-sm max-sm:leading-6"
-                    v-html="product.price_html"
-                >
+                <div class="flex items-center gap-2.5">
+                    <!-- Main price -->
+                    <div
+                        class="text-lg font-semibold max-sm:text-sm max-sm:leading-6"
+                        v-html="product.price_html"
+                    ></div>
+                    
+                    <!-- Total units beside price, in smaller text -->
+                    <div 
+                        v-if="product.units_per_pack && parseFloat(product.units_per_pack) > 0"
+                        class="text-sm text-zinc-500 self-center"
+                    >
+                        - @{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s
+                    </div>
                 </div>
-                <!-- Unit price calculation -->
+                
+                <!-- Price per unit calculation (keep this underneath) -->
                 <div 
                     v-if="product.units_per_pack && parseFloat(product.units_per_pack) > 0"
                     class="text-xs text-zinc-500 mt-1"
@@ -282,16 +290,28 @@
 
                 {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
 
-                <div
-                    class="flex gap-2.5 text-lg font-semibold"
-                    v-html="product.price_html"
-                >
+                <div class="flex items-center gap-2.5">
+                    <!-- Main price -->
+                    <div
+                        class="text-lg font-semibold"
+                        v-html="product.price_html"
+                    ></div>
+                    
+                    <!-- Total units beside price, in smaller text -->
+                    <div 
+                        v-if="product.units_per_pack && parseFloat(product.units_per_pack) > 0"
+                        class="text-sm text-zinc-500 self-center"
+                    >
+                        - @{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s
+                    </div>
                 </div>
+                
+                <!-- Price per unit calculation -->
                 <div 
-                    v-if="product.units_per_pack && product.units_per_pack > 0"
+                    v-if="product.units_per_pack && parseFloat(product.units_per_pack) > 0"
                     class="text-xs text-zinc-500 mt-1"
                 >
-                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ unitPrice }} / @{{ product.unit_label || 'unit' }})
+                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ formatUnitPrice(product) }} / @{{ product.unit_label || 'unit' }})
                 </div>
 
                 {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
