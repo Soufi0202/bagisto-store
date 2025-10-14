@@ -136,6 +136,13 @@
                     v-html="product.price_html"
                 >
                 </div>
+        <!-- Unit price calculation -->
+                <div 
+                    v-if="product.units_per_pack && product.units_per_pack > 0"
+                    class="text-xs text-zinc-500 mt-1"
+                >
+                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ unitPrice }} / @{{ product.unit_label || 'unit' }})
+                </div>
 
                 {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
 
@@ -279,6 +286,12 @@
                     class="flex gap-2.5 text-lg font-semibold"
                     v-html="product.price_html"
                 >
+                </div>
+                <div 
+                    v-if="product.units_per_pack && product.units_per_pack > 0"
+                    class="text-xs text-zinc-500 mt-1"
+                >
+                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ unitPrice }} / @{{ product.unit_label || 'unit' }})
                 </div>
 
                 {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
