@@ -1103,7 +1103,7 @@ return [
         'index' => [
             'categories-carousel' => 'Categories Carousel',
             'image-carousel'      => 'Image Carousel',
-            'offer'               => 'Get UPTO 40% OFF on your 1st order SHOP NOW',
+            'offer'               => 'Welcome To Our New Users, SHOP NOW',
             'product-carousel'    => 'Product Carousel',
             'resend-verify-email' => 'Resend Verification Email',
             'verify-email'        => 'Verify your email account',
