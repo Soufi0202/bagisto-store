@@ -543,3 +543,28 @@ Route::get('/find-images', function() {
         'public_path' => $publicPath,
     ];
 });
+
+Route::get('/show-directory', function () {
+    $path = storage_path('app/public/product');
+    
+    if (!is_dir($path)) {
+        return response()->json(['error' => 'Directory does not exist']);
+    }
+    
+    $files = scandir($path);
+    $details = [];
+    
+    foreach ($files as $file) {
+        if ($file === '.' || $file === '..') continue;
+        
+        $fullPath = $path . '/' . $file;
+        $details[] = [
+            'name' => $file,
+            'type' => is_dir($fullPath) ? 'directory' : 'file',
+            'size' => is_file($fullPath) ? filesize($fullPath) : null,
+            'permissions' => substr(sprintf('%o', fileperms($fullPath)), -4),
+        ];
+    }
+    
+    return response()->json(['contents' => $details], 200, [], JSON_PRETTY_PRINT);
+});
