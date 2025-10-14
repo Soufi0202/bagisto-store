@@ -365,6 +365,23 @@
                     isAddingToCart: false,
                 }
             },
+            
+            computed: {
+            unitPrice() {
+                if (!this.product.units_per_pack || !this.product.price) {
+                    return '';
+                }
+
+                // Extract numeric price (assuming price is available in the product object)
+                let price = this.product.price;
+                
+                // Calculate unit price
+                let unitPrice = (price / this.product.units_per_pack).toFixed(2);
+                
+                // Format with currency symbol
+                return this.product.currency_symbol + unitPrice;
+            }
+        },
 
             methods: {
                 addToWishlist() {
