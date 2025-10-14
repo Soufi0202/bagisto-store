@@ -55,6 +55,10 @@ class ProductResource extends JsonResource
             'reviews'     => [
                 'total'   => $this->reviewHelper->getTotalReviews($this),
             ],
+                                    // Add these new fields
+            'units_per_pack' => $this->units_per_pack,
+            'unit_label'     => $this->unit_label,
+            'raw_price'      => $productTypeInstance->getMinimalPrice(),
         ];
     }
 }
