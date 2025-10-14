@@ -136,12 +136,12 @@
                     v-html="product.price_html"
                 >
                 </div>
-        <!-- Unit price calculation -->
+                <!-- Unit price calculation -->
                 <div 
-                    v-if="product.units_per_pack && product.units_per_pack > 0"
+                    v-if="product.units_per_pack && parseFloat(product.units_per_pack) > 0"
                     class="text-xs text-zinc-500 mt-1"
                 >
-                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ unitPrice }} / @{{ product.unit_label || 'unit' }})
+                    (@{{ product.units_per_pack }} @{{ product.unit_label || 'unit' }}s - @{{ formatUnitPrice(product) }} / @{{ product.unit_label || 'unit' }})
                 </div>
 
                 {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
@@ -399,6 +399,17 @@
                             window.location.href = "{{ route('shop.customer.session.index')}}";
                         }
                 },
+                formatUnitPrice(product) {
+    if (!product.units_per_pack || !product.raw_price) {
+        return '';
+    }
+    
+    // Calculate unit price using raw_price
+    let unitPrice = (product.raw_price / parseFloat(product.units_per_pack)).toFixed(2);
+    
+    // Use core()->currency() equivalent for formatting
+    return product.min_price.charAt(0) + unitPrice; // Assumes currency symbol is first character
+}, 
 
                 addToCompare(productId) {
                     /**
