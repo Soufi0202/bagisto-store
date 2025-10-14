@@ -13,6 +13,7 @@
             <div class="shimmer mt-4 h-[38px] w-[150px] rounded-lg"></div>
 
             <p class="shimmer mt-5 h-9 w-[35%]"></p>
+            <div class="shimmer mt-2 h-5 w-[45%]"></div>
 
             <div class="mt-6 grid gap-2.5 max-sm:my-[20px] max-sm:flex max-sm:justify-between">
                 <p class="shimmer h-[27px] w-full max-sm:h-[21px] max-sm:w-[100px]"></p>
