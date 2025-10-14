@@ -345,6 +345,21 @@
                                         (@lang('shop::app.products.view.tax-inclusive'))
                                     </span>
                                 @endif
+                                {{-- Unit price calculation --}}
+                                @if ($product->units_per_pack && is_numeric($product->units_per_pack) && floatval($product->units_per_pack) > 0)
+                                    @php
+                                        // Get the actual price without formatting
+                                        $price = $product->getTypeInstance()->getMinimalPrice();
+                                        $unitPrice = $price / floatval($product->units_per_pack);
+                                        $unitLabel = $product->unit_label ?? 'unit';
+                                    @endphp
+                                
+                                    <div class="mt-2 text-sm font-normal text-zinc-500 max-sm:text-xs">
+                                        <span>
+                                            ({{ $product->units_per_pack }} {{ $unitLabel }}s - {{ core()->currency($unitPrice) }} / {{ $unitLabel }})
+                                        </span>
+                                    </div>
+                                @endif
 
                                 @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
                                     <div class="mt-2.5 grid gap-1.5">
